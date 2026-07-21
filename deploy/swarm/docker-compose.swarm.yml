@@ -69,7 +69,7 @@ services:
   # Backend (FastAPI), chat pipeline + /api/admin/*
   # ────────────────────────────────────────
   backend:
-    image: ghcr.io/ozanonurtek/mongodb-help-backend:${IMAGE_TAG:-latest}
+    image: ghcr.io/ozanonurtek/mongodb.help-backend:${IMAGE_TAG:-latest}
     environment:
       CORS_ORIGINS: ${CORS_ORIGINS}
       DAILY_FREE_GRANT: ${DAILY_FREE_GRANT:-5}
@@ -101,7 +101,7 @@ services:
   # Frontend (Next.js), chat UI, auth gateway, i18n
   # ────────────────────────────────────────
   frontend:
-    image: ghcr.io/ozanonurtek/mongodb-help-frontend:${IMAGE_TAG:-latest}
+    image: ghcr.io/ozanonurtek/mongodb.help-frontend:${IMAGE_TAG:-latest}
     environment:
       BACKEND_URL: http://backend:8888
       AUTH_TRUST_HOST: "1"
@@ -127,7 +127,7 @@ services:
   # Leads Dashboard (Next.js), admin view at leads.mongodb.help
   # ────────────────────────────────────────
   leads-dashboard:
-    image: ghcr.io/ozanonurtek/mongodb-help-leads-dashboard:${IMAGE_TAG:-latest}
+    image: ghcr.io/ozanonurtek/mongodb.help-leads-dashboard:${IMAGE_TAG:-latest}
     environment:
       BACKEND_URL: http://backend:8888
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}

@@ -67,21 +67,21 @@ jobs:
             ok_fe=0
             ok_lead=0
             for i in 1 2 3 4 5 6; do
-              if docker manifest inspect ghcr.io/ozanonurtek/mongodb-help-backend:"$IMAGE_TAG" >/dev/null 2>&1; then
+              if docker manifest inspect ghcr.io/ozanonurtek/mongodb.help-backend:"$IMAGE_TAG" >/dev/null 2>&1; then
                 ok_be=1; break
               fi
               echo "GHCR not ready yet (attempt $i/6), retrying in 15s..."
               sleep 15
             done
             for i in 1 2 3 4 5 6; do
-              if docker manifest inspect ghcr.io/ozanonurtek/mongodb-help-frontend:"$IMAGE_TAG" >/dev/null 2>&1; then
+              if docker manifest inspect ghcr.io/ozanonurtek/mongodb.help-frontend:"$IMAGE_TAG" >/dev/null 2>&1; then
                 ok_fe=1; break
               fi
               echo "GHCR not ready yet (attempt $i/6), retrying in 15s..."
               sleep 15
             done
             for i in 1 2 3 4 5 6; do
-              if docker manifest inspect ghcr.io/ozanonurtek/mongodb-help-leads-dashboard:"$IMAGE_TAG" >/dev/null 2>&1; then
+              if docker manifest inspect ghcr.io/ozanonurtek/mongodb.help-leads-dashboard:"$IMAGE_TAG" >/dev/null 2>&1; then
                 ok_lead=1; break
               fi
               echo "GHCR not ready yet (attempt $i/6), retrying in 15s..."
