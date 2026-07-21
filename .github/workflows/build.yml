@@ -55,8 +55,8 @@ jobs:
           file: ${{ matrix.service.context }}/Dockerfile
           push: true
           tags: |
-            ${{ env.REGISTRY }}/ozanonurtek/mongodb-help-${{ matrix.service.name }}:${{ env.IMAGE_TAG }}
-            ${{ env.REGISTRY }}/ozanonurtek/mongodb-help-${{ matrix.service.name }}:latest
+            ${{ env.REGISTRY }}/ozanonurtek/mongodb.help-${{ matrix.service.name }}:${{ env.IMAGE_TAG }}
+            ${{ env.REGISTRY }}/ozanonurtek/mongodb.help-${{ matrix.service.name }}:latest
           # Bake the commit SHA into the image so each deployed build can link
           # back to the exact source it was built from (sidebar footer + the
           # backend /api/health).

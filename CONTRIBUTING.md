@@ -116,8 +116,8 @@ merge, redeploy the new `main` SHA.
 
 ```bash
 # Fork the repo on GitHub, then:
-git clone git@github.com:YOUR_USERNAME/mongodb-help.git
-cd mongodb-help
+git clone git@github.com:YOUR_USERNAME/mongodb.help.git
+cd mongodb.help
 git remote add upstream https://github.com/ozanonurtek/mongodb.help.git
 ```
 
