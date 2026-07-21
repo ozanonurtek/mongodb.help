@@ -22,7 +22,7 @@
 
 ## What is this?
 
-**mongodb.help** is an open-source, chat-based support tool for MongoDB
+**[mongodb.help](https://mongodb.help)** is an open-source, chat-based support tool for MongoDB
 developers. Instead of digging through docs, pasting your error into a generic
 chatbot, or waiting on a forum, you drop your problem into one box and get a
 calm, cited, conversation-aware answer grounded in the **official MongoDB
