@@ -1,0 +1,115 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    environment:
+      CORS_ORIGINS: "http://localhost:3333,http://localhost:8888"
+      DAILY_FREE_GRANT: "5"
+      ANON_DAILY_CHATS: "1"
+      ANON_MESSAGES_PER_CHAT: "5"
+      SIGNEDUP_DAILY_CHATS: "10"
+      SIGNEDUP_MESSAGES_PER_CHAT: "50"
+      MONGODB_URI: "mongodb://${MONGO_INITDB_ROOT_USERNAME:-root}:${MONGO_INITDB_ROOT_PASSWORD:-rootpass}@mongo:27017/${MONGO_INITDB_DATABASE:-mongodbhelp}?authSource=admin"
+      ADMIN_SECRET: "${ADMIN_SECRET:-dev-insecure-admin-secret-change-me}"
+      # HMAC secret shared with the frontend gateway. The backend trusts
+      # X-Auth-User-Id ONLY when X-Gateway-Sig verifies with this secret.
+      # MUST be the same value on both services. Rotation causes a ~60s
+      # service blip (signed-in users downgrade to anonymous); there is no
+      # deploy order that avoids this with a single secret.
+      # Replay/skew tolerance is 120s (GATEWAY_TS_TOLERANCE in identity.py).
+      GATEWAY_HMAC_SECRET: "${GATEWAY_HMAC_SECRET:-dev-insecure-gateway-secret-change-me}"
+    ports:
+      # Localhost only. User-facing endpoints trust X-Auth-User-Id only when
+      # X-Gateway-Sig (HMAC over method+path+user_id+ts, signed with
+      # GATEWAY_HMAC_SECRET) verifies — so direct backend access without the
+      # secret can't impersonate a user. Admin endpoints (/api/admin/*)
+      # verify a signed X-Admin-Token separately. The localhost binding is
+      # still defense-in-depth for both.
+      - "127.0.0.1:8888:8888"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    develop:
+      watch:
+        - action: sync
+          path: ./backend/app
+          target: /app
+        - action: rebuild
+          path: ./backend/requirements.txt
+
+  frontend:
+    build:
+      context: ./frontend
+    environment:
+      BACKEND_URL: "http://backend:8888"
+      AUTH_TRUST_HOST: "1"
+      # Canonical external URL. Forces correct OAuth redirect_uri, otherwise
+      # Auth.js derives it from the container's own 0.0.0.0:3333 host, which
+      # Google/GitHub reject.
+      AUTH_URL: "${AUTH_URL:-http://localhost:3333}"
+      AUTH_SECRET: "${AUTH_SECRET:-dev-insecure-secret-change-me}"
+      AUTH_GITHUB_ID: "${AUTH_GITHUB_ID:-}"
+      AUTH_GITHUB_SECRET: "${AUTH_GITHUB_SECRET:-}"
+      AUTH_GOOGLE_ID: "${AUTH_GOOGLE_ID:-}"
+      AUTH_GOOGLE_SECRET: "${AUTH_GOOGLE_SECRET:-}"
+      MONGODB_URI: "mongodb://${MONGO_INITDB_ROOT_USERNAME:-root}:${MONGO_INITDB_ROOT_PASSWORD:-rootpass}@mongo:27017/${MONGO_INITDB_DATABASE:-mongodbhelp}?authSource=admin"
+      # HMAC secret shared with the backend (see backend service above).
+      # The gateway signs each X-Auth-User-Id assertion with this; the
+      # backend verifies. MUST match the backend value exactly.
+      GATEWAY_HMAC_SECRET: "${GATEWAY_HMAC_SECRET:-dev-insecure-gateway-secret-change-me}"
+      # Hours during which a deleted user cannot re-create an account
+      # (cool-off gate, checked against *_to_be_terminated mirrors on sign-in).
+      DELETE_COOL_OFF_HOURS: "${DELETE_COOL_OFF_HOURS:-24}"
+    ports:
+      - "3333:3333"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend/src
+          target: /app/src
+        - action: rebuild
+          path: ./frontend/package.json
+
+  leads-dashboard:
+    build:
+      context: ./leads-dashboard
+    environment:
+      BACKEND_URL: "http://backend:8888"
+      ADMIN_PASSWORD: "${ADMIN_PASSWORD:-admin}"
+      ADMIN_SECRET: "${ADMIN_SECRET:-dev-insecure-admin-secret-change-me}"
+    ports:
+      # Localhost only; consumed via nginx (Host: leads.mongodb.host) in prod.
+      - "127.0.0.1:3434:3434"
+    depends_on:
+      backend:
+        condition: service_started
+    develop:
+      watch:
+        - action: sync
+          path: ./leads-dashboard/src
+          target: /app/src
+        - action: rebuild
+          path: ./leads-dashboard/package.json
+
+  mongo:
+    image: mongo:8.3.2-noble
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: "${MONGO_INITDB_ROOT_USERNAME:-root}"
+      MONGO_INITDB_ROOT_PASSWORD: "${MONGO_INITDB_ROOT_PASSWORD:-rootpass}"
+      MONGO_INITDB_DATABASE: "${MONGO_INITDB_DATABASE:-mongodbhelp}"
+    ports:
+      - "127.0.0.1:27018:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 }).ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  mongo-data:

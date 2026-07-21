@@ -1,0 +1,22 @@
+# Ruff configuration for the FastAPI backend.
+# Docs: https://docs.astral.sh/ruff/configuration/
+#
+# The set below matches what the existing code passes on day one of open
+# source. Tighten in dedicated PRs over time (add I, UP, B, then SIM, RUF);
+# do not loosen. If a rule is genuinely wrong for a file, add a scoped
+# `per-file-ignores` entry rather than disabling the rule globally.
+
+target-version = "py311"
+line-length = 100
+extend-exclude = ["__pycache__"]
+
+[lint]
+# Default Ruff rule set: E (pycodestyle errors), W (warnings), F (pyflakes).
+# This is the minimum bar for new contributions; it catches dead imports,
+# unused variables, syntax issues, and style problems without churning the
+# existing code base.
+select = ["E", "W", "F"]
+
+[lint.per-file-ignores]
+# allow `__init__.py` to re-export without using imports
+"__init__.py" = ["F401"]

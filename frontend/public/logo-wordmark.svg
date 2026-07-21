@@ -1,0 +1,10 @@
+<svg width="300" height="72" viewBox="0 0 600 144" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="wmTitle">
+  <title id="wmTitle">mongodb.help</title>
+
+  <g transform="translate(0,32)">
+    <rect x="0" y="0" width="66" height="66" rx="12" fill="#F54927"/>
+    <text x="33" y="45" text-anchor="middle" font-family="'JetBrains Mono','Courier New',monospace" font-size="30" font-weight="700" fill="#ffffff">&gt;_</text>
+  </g>
+
+  <text x="86" y="76" font-family="'JetBrains Mono','Courier New',monospace" font-size="40" font-weight="700" fill="#12181f">mongodb<tspan fill="#F54927">.help</tspan></text>
+</svg>

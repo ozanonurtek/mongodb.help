@@ -1,0 +1,106 @@
+name: Deploy
+
+# Deploy ALREADY-BUILT images (from the Build workflow) to the single EU
+# production server.
+#
+# Inputs:
+#   image_tag - image tag to pull (default: latest). For a deterministic
+#               deploy, pass the :<commit-sha> tag produced by the Build run.
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Image tag to deploy (default: latest). Use the Build run's commit SHA for a deterministic deploy."
+        required: false
+        default: ""
+  workflow_call:
+    inputs:
+      image_tag:
+        type: string
+        required: false
+        default: ""
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Copy deploy files to server
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: "deploy/swarm/docker-compose.swarm.yml,deploy/swarm/nginx/nginx.conf"
+          target: /opt/mongodbhelp
+
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            set -eo pipefail
+
+            IMAGE_TAG="${{ inputs.image_tag }}"
+            : "${IMAGE_TAG:=latest}"
+
+            cd /opt/mongodbhelp/deploy/swarm
+
+            # Load environment (created manually on server once).
+            set -a && source .env && set +a
+
+            # Authenticate to GHCR (private repo). Fail fast and loud, a silent
+            # login failure leaves `docker stack deploy` pulling blindly.
+            if ! echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ozanonurtek --password-stdin 2>&1; then
+              echo "ERROR: GHCR login failed. Check the GHCR_PAT secret exists and the token is valid."
+              exit 1
+            fi
+
+            # Sanity-check that this exact image tag is pullable with these creds.
+            # Retry briefly to absorb GHCR propagation lag when chained right after
+            # a Build; a persistent failure means bad creds or a missing tag.
+            ok_be=0
+            ok_fe=0
+            ok_lead=0
+            for i in 1 2 3 4 5 6; do
+              if docker manifest inspect ghcr.io/ozanonurtek/mongodb-help-backend:"$IMAGE_TAG" >/dev/null 2>&1; then
+                ok_be=1; break
+              fi
+              echo "GHCR not ready yet (attempt $i/6), retrying in 15s..."
+              sleep 15
+            done
+            for i in 1 2 3 4 5 6; do
+              if docker manifest inspect ghcr.io/ozanonurtek/mongodb-help-frontend:"$IMAGE_TAG" >/dev/null 2>&1; then
+                ok_fe=1; break
+              fi
+              echo "GHCR not ready yet (attempt $i/6), retrying in 15s..."
+              sleep 15
+            done
+            for i in 1 2 3 4 5 6; do
+              if docker manifest inspect ghcr.io/ozanonurtek/mongodb-help-leads-dashboard:"$IMAGE_TAG" >/dev/null 2>&1; then
+                ok_lead=1; break
+              fi
+              echo "GHCR not ready yet (attempt $i/6), retrying in 15s..."
+              sleep 15
+            done
+            if [[ "$ok_fe" != 1 || "$ok_be" != 1 || "$ok_lead" != 1 ]]; then
+              echo "ERROR: Cannot access GHCR"
+              echo "       Verify (a) the Build workflow pushed this commit SHA, and"
+              echo "       (b) GHCR_PAT has read:packages scope and access to the package."
+              exit 1
+            fi
+
+            # Deploy with zero-downtime rolling update.
+            IMAGE_TAG=$IMAGE_TAG \
+              docker stack deploy \
+              --with-registry-auth \
+              --prune \
+              -c docker-compose.swarm.yml \
+              mongodbhelp
+
+            # Clean up old images.
+            docker image prune -af --filter "until=24h"

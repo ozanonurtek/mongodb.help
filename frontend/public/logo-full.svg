@@ -1,0 +1,14 @@
+<svg width="340" height="130" viewBox="0 0 680 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="logoTitle logoDesc">
+  <title id="logoTitle">mongodb.help</title>
+  <desc id="logoDesc">Logo for mongodb.help: a terminal prompt icon next to the wordmark "mongodb.help"</desc>
+
+  <g transform="translate(60,70)">
+    <rect x="0" y="0" width="120" height="120" rx="20" fill="#F54927"/>
+    <text x="60" y="72" text-anchor="middle" font-family="'JetBrains Mono','Courier New',monospace" font-size="52" font-weight="700" fill="#ffffff">&gt;_</text>
+  </g>
+
+  <g transform="translate(210,95)">
+    <text x="0" y="35" font-family="'JetBrains Mono','Courier New',monospace" font-size="42" font-weight="700" fill="#12181f">mongodb<tspan fill="#F54927">.help</tspan></text>
+    <text x="2" y="65" font-family="system-ui,-apple-system,sans-serif" font-size="14" fill="#5b6673">answers grounded in the real docs</text>
+  </g>
+</svg>

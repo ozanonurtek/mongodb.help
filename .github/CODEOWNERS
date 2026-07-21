@@ -1,0 +1,34 @@
+# CODEOWNERS
+# Docs: https://docs.github.com/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+#
+# Each line: <pattern>  <owner1>  <owner2> ...
+# Pull requests that touch these paths will auto-request review from the owners.
+# Owners must have write access to the repo, or be a Team.
+
+# ─── Project owner (default: everything) ───────────────────────────────────
+*                           @ozanonurtek
+
+# ─── Backend (Python / FastAPI) ────────────────────────────────────────────
+/backend/                   @ozanonurtek
+/backend/app/main.py        @ozanonurtek
+
+# ─── Frontend (Next.js) ────────────────────────────────────────────────────
+/frontend/                  @ozanonurtek
+
+# ─── Leads dashboard ───────────────────────────────────────────────────────
+/leads-dashboard/           @ozanonurtek
+
+# ─── Docs (spec / design / philosophy) ─────────────────────────────────────
+/docs/                      @ozanonurtek
+/README.md                  @ozanonurtek
+/CONTRIBUTING.md            @ozanonurtek
+/CODE_OF_CONDUCT.md         @ozanonurtek
+/SECURITY.md                @ozanonurtek
+
+# ─── Security-sensitive paths ──────────────────────────────────────────────
+/.github/workflows/         @ozanonurtek
+/deploy/                    @ozanonurtek
+/docker-compose.yml         @ozanonurtek
+/.env.example               @ozanonurtek
+/.gitignore                 @ozanonurtek
+/LICENSE                    @ozanonurtek

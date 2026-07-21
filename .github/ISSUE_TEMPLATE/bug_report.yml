@@ -1,0 +1,105 @@
+name: 🐛 Bug report
+description: Report something that is broken or behaves incorrectly
+title: "[bug] "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug report! Before you continue:
+
+        - **Search existing issues** to avoid duplicates.
+        - **Do not report security issues here.** See [SECURITY.md](https://github.com/ozanonurtek/mongodb.help/blob/main/SECURITY.md).
+        - **Redact any secrets** (API keys, passwords, connection strings) from logs and screenshots.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the unexpected behaviour.
+      placeholder: "When I sent a 6th anonymous message, the UI froze instead of showing the sign-up prompt."
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+      description: What you thought *should* have happened.
+      placeholder: "I expected the per-chat limit banner to appear."
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Minimal, numbered steps. The smaller the repro, the faster the fix.
+      placeholder: |
+        1. Open http://localhost:3333 in a fresh incognito window
+        2. Start a new chat
+        3. Send 6 messages
+        4. Observe: …
+    validations:
+      required: true
+
+  - type: dropdown
+    id: service
+    attributes:
+      label: Which service is affected?
+      multiple: true
+      options:
+        - Backend (FastAPI)
+        - Frontend (Next.js)
+        - Leads dashboard
+        - Database (MongoDB)
+        - Deploy / nginx / Docker
+        - Auth / OAuth
+        - Other / not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment
+      description: Tell us about your setup. Run `docker compose ps` and paste any errors from `docker compose logs <service>`.
+      placeholder: |
+        - OS: macOS 14.5
+        - Docker: 27.0.1
+        - Branch/commit: main @ abc1234
+        - Running via: docker compose
+        - Browser (if UI): Chrome 127
+      value: |
+        - OS:
+        - Docker / Node / Python versions:
+        - Branch/commit:
+        - Running via: docker compose / native
+        - Browser (if UI):
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / error output
+      description: Paste relevant logs, stack traces, or network responses. **Redact secrets first.** Use ``` blocks.
+      render: shell
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots / recordings
+      description: For UI bugs only. Drag-and-drop images/GIFs.
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Confirmation
+      options:
+        - label: I have searched existing issues and this is not a duplicate.
+          required: true
+        - label: I have redacted any secrets from the content above.
+          required: true
+        - label: This is not a security issue (security reports go through SECURITY.md).
+          required: true

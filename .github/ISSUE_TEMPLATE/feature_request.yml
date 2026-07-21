@@ -1,0 +1,81 @@
+name: ✨ Feature request
+description: Suggest a new feature or an enhancement to existing behaviour
+title: "[feature] "
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the suggestion! Before continuing:
+
+        - **Search existing issues** — someone may already have asked for this.
+        - Use this template for **product/behaviour** changes. For internal
+          refactors or tooling, use a plain issue with `chore` instead.
+        - This project follows [`docs/PHILOSPHY.md`](https://github.com/ozanonurtek/mongodb.help/blob/main/docs/PHILOSPHY.md):
+          simplicity and surgical changes win.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What's the pain point? What can't you do today, or what's frustrating?
+      placeholder: "As a signed-up user, I can't search my past chats, so I keep re-asking the same MongoDB error."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: What would "done" look like? Keep it concrete.
+      placeholder: "Add a /history page that lists my chats, searchable by keyword and filterable by language."
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What else did you think of? Why is the proposal above better?
+      placeholder: "Considered client-side search over localStorage cache, but that breaks across devices."
+
+  - type: dropdown
+    id: service
+    attributes:
+      label: Primarily affects
+      multiple: true
+      options:
+        - Backend (FastAPI)
+        - Frontend (Next.js)
+        - Leads dashboard
+        - Database (MongoDB)
+        - Deploy / ops
+        - Docs
+        - Other / not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Mockups, screenshots, links to prior art, related issues.
+
+  - type: checkboxes
+    id: willing
+    attributes:
+      label: Willingness to contribute
+      options:
+        - label: I am willing to submit a PR for this feature.
+          required: false
+        - label: I have searched existing issues and this is not a duplicate.
+          required: true
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Project-fit check
+      description: The project deliberately stays minimal — see the "tool is the homepage" principle.
+      options:
+        - label: This fits the project's minimal, single-purpose scope (see docs/PHILOSPHY.md).
+          required: false

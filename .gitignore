@@ -1,0 +1,123 @@
+# ---------------------------------------------------------------------------
+# OS / Editor
+# ---------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.fleet/
+
+# ---------------------------------------------------------------------------
+# Secrets & environment files (keep the *.env.example templates tracked)
+# ---------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# ---------------------------------------------------------------------------
+# Logs & runtime
+# ---------------------------------------------------------------------------
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.pid
+*.seed
+*.pid.lock
+pids/
+
+# ---------------------------------------------------------------------------
+# Node.js / Next.js (frontend & leads-dashboard)
+# ---------------------------------------------------------------------------
+node_modules/
+.next/
+out/
+build/
+dist/
+
+# TypeScript build info
+*.tsbuildinfo
+next-env.d.ts
+
+# Coverage / test artifacts
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+playwright/.cache/
+e2e/.cache/
+
+# Vercel / Next.js cache
+.vercel/
+.cache/
+
+# ---------------------------------------------------------------------------
+# Python (backend)
+# ---------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+/lib/
+/bin/
+/include/
+sdist/
+wheels/
+*.egg-info/
+*.egg
+MANIFEST
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+.python-version
+
+# Type checkers / linters
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+.ruff_cache/
+.pytest_cache/
+.tox/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# ---------------------------------------------------------------------------
+# Docker / deployment
+# ---------------------------------------------------------------------------
+# Keep docker-compose source files; ignore generated/runtime artifacts
+*.env.local
+docker-compose.override.yml
+
+# ---------------------------------------------------------------------------
+# Misc
+# ---------------------------------------------------------------------------
+*.local
+.turbo/
+.eslintcache
+.stylelintcache
+
+# Internal planning docs (product specs, design system, build log) — kept
+# locally, never tracked.
+/docs/

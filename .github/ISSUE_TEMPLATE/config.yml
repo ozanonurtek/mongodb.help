@@ -1,0 +1,17 @@
+# Default issue template config.
+# Docs: https://docs.github.com/communities/using-templates-to-encourage-useful-issues-and-pull-requests/configuring-issue-templates-for-your-repository#configuring-the-template-chooser
+
+blank_issues_enabled: true
+contact_links:
+  - name: 💬 Ask a question
+    url: https://github.com/ozanonurtek/mongodb.help/discussions
+    about: For "how do I…" questions. Please don't open issues for questions.
+  - name: 📖 Read the docs
+    url: https://github.com/ozanonurtek/mongodb.help/tree/main/docs
+    about: Product spec, design system, philosophy, and implementation notes.
+  - name: 🔐 Report a security vulnerability
+    url: https://github.com/ozanonurtek/mongodb.help/security/advisories/new
+    about: Do NOT use issues for security reports. Use private vulnerability reporting.
+  - name: 🏢 Official MongoDB support
+    url: https://www.mongodb.com/community/forums/
+    about: This project is unofficial and unaffiliated with MongoDB, Inc. For MongoDB-the-product support, use the MongoDB community forums.
