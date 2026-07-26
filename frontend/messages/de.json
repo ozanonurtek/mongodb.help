@@ -10,6 +10,18 @@
   "followUp": "Nachfrage stellen…",
   "thinking": "Denkt…",
   "empty": "Starten Sie einen Chat. Fügen Sie Ihren Fehler, Ihre Frage oder langsame Abfrage ein.",
+  "suggestedQuestions": [
+    "Wie erstelle ich in MongoDB einen Index, um meine Abfragen zu beschleunigen?",
+    "Was ist der Unterschied zwischen find() und aggregate()?",
+    "Wie modelliere ich eine Viele-zu-Viele-Beziehung in MongoDB?",
+    "Warum ist meine MongoDB-Abfrage langsam und wie kann ich sie analysieren?",
+    "Wie führe ich in MongoDB eine Suche ohne Groß-/Kleinschreibung durch?",
+    "Was ist ein Replica Set und wann sollte ich es verwenden?",
+    "Wie aktualisiere ich verschachtelte Felder in einem MongoDB-Dokument?",
+    "Wie funktionieren Transaktionen in MongoDB?",
+    "Wie sichere und stelle ich eine MongoDB-Datenbank wieder her?",
+    "Was ist der Unterschied zwischen MongoDB und einer relationalen Datenbank?"
+  ],
   "networkError": "Netzwerkfehler beim Kontaktieren der API.",
   "sidebar": {
     "newChat": "Neuer Chat",

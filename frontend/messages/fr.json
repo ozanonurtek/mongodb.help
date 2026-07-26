@@ -10,6 +10,18 @@
   "followUp": "Poser une question…",
   "thinking": "Réflexion…",
   "empty": "Démarrez une discussion. Collez votre erreur, question ou requête lente.",
+  "suggestedQuestions": [
+    "Comment créer un index dans MongoDB pour accélérer mes requêtes ?",
+    "Quelle est la différence entre find() et aggregate() ?",
+    "Comment modéliser une relation plusieurs-à-plusieurs dans MongoDB ?",
+    "Pourquoi ma requête MongoDB est-elle lente et comment la déboguer ?",
+    "Comment effectuer une recherche insensible à la casse dans MongoDB ?",
+    "Qu'est-ce qu'un replica set et quand l'utiliser ?",
+    "Comment mettre à jour des champs imbriqués dans un document MongoDB ?",
+    "Comment fonctionnent les transactions dans MongoDB ?",
+    "Comment sauvegarder et restaurer une base de données MongoDB ?",
+    "Quelle est la différence entre MongoDB et une base de données relationnelle ?"
+  ],
   "networkError": "Erreur réseau lors du contact de l'API.",
   "sidebar": {
     "newChat": "Nouvelle discussion",

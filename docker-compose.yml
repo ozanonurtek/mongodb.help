@@ -9,7 +9,7 @@ services:
       ANON_MESSAGES_PER_CHAT: "5"
       SIGNEDUP_DAILY_CHATS: "10"
       SIGNEDUP_MESSAGES_PER_CHAT: "50"
-      MONGODB_URI: "mongodb://${MONGO_INITDB_ROOT_USERNAME:-root}:${MONGO_INITDB_ROOT_PASSWORD:-rootpass}@mongo:27017/${MONGO_INITDB_DATABASE:-mongodbhelp}?authSource=admin"
+      MONGODB_URI: "${MONGODB_URI}"
       ADMIN_SECRET: "${ADMIN_SECRET:-dev-insecure-admin-secret-change-me}"
       # HMAC secret shared with the frontend gateway. The backend trusts
       # X-Auth-User-Id ONLY when X-Gateway-Sig verifies with this secret.

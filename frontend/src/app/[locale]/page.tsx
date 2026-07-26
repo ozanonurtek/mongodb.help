@@ -28,6 +28,10 @@ type Chat = { chatId: string; title?: string; preview?: string; messageCount?: n
 
 export default function ChatPage() {
   const t = useTranslations();
+  // Array of localized starter prompts shown on the empty chat screen.
+  // `t.raw` returns the structured value (array) untouched, preserving the
+  // JSON list shape instead of trying to format it as a string.
+  const suggestedQuestions = (t.raw("suggestedQuestions") as string[]) ?? [];
   const { data: session, status } = useSession();
   const [chats, setChats] = useState<Chat[]>([]);
   const [activeChat, setActiveChat] = useState<string | null>(null);
@@ -204,10 +208,13 @@ export default function ChatPage() {
     loadUsage();
   }
 
-  async function send() {
-    if (!input.trim() || loading) return;
+  async function send(overrideContent?: string) {
+    // Suggestions pass their text directly so we don't race a state update:
+    // setInput() is async, and reading `input` right after would still see
+    // the empty value.
+    const content = (overrideContent ?? input).trim();
+    if (!content || loading) return;
     setError(null);
-    const content = input.trim();
     const userMsg: Msg = { role: "user", content };
     setMessages((m) => [...m, userMsg]);
     setInput("");
@@ -463,6 +470,11 @@ export default function ChatPage() {
           missingLabel={t("feedback.missing")}
           submitLabel={t("feedback.submit")}
           thanksLabel={t("feedback.thanks")}
+          suggestedQuestions={suggestedQuestions}
+          onSuggestionClick={(q) => {
+            setInput(q);
+            send(q);
+          }}
         />
 
         {error && (

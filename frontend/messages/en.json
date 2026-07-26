@@ -10,6 +10,18 @@
   "followUp": "Ask a follow-up…",
   "thinking": "Analyzing…",
   "empty": "Start a chat. Paste your error, question, or slow query.",
+  "suggestedQuestions": [
+    "How do I create an index in MongoDB to speed up my queries?",
+    "What's the difference between find() and aggregate()?",
+    "How can I model a many-to-many relationship in MongoDB?",
+    "Why is my MongoDB query slow and how can I debug it?",
+    "How do I perform a case-insensitive search in MongoDB?",
+    "What is a replica set and when should I use one?",
+    "How do I update nested fields in a MongoDB document?",
+    "How do transactions work in MongoDB?",
+    "How can I back up and restore a MongoDB database?",
+    "What's the difference between MongoDB and a relational database?"
+  ],
   "networkError": "Network error contacting the API.",
   "sidebar": {
     "newChat": "New chat",

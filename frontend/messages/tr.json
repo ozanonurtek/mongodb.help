@@ -10,6 +10,18 @@
   "followUp": "Takip sorusu sor…",
   "thinking": "Analiz ediliyor…",
   "empty": "Bir sohbet başlatın. Hatanızı, sorunuzu veya yavaş sorgunuzu yapıştırın.",
+  "suggestedQuestions": [
+    "Sorgularımı hızlandırmak için MongoDB'de nasıl indeks oluştururum?",
+    "find() ve aggregate() arasındaki fark nedir?",
+    "MongoDB'de çoktan-çoğa ilişkiyi nasıl modelleyebilirim?",
+    "MongoDB sorgum neden yavaş ve bunu nasıl debug edebilirim?",
+    "MongoDB'de büyük/küçük harf duyarsız arama nasıl yaparım?",
+    "Replica set nedir ve ne zaman kullanılmalıdır?",
+    "Bir MongoDB belgesindeki iç içe alanları nasıl güncellerim?",
+    "MongoDB'de transaction'lar nasıl çalışır?",
+    "Bir MongoDB veritabanını nasıl yedekler ve geri yüklerim?",
+    "MongoDB ile ilişkisel veritabanı arasındaki fark nedir?"
+  ],
   "networkError": "API ile iletişim kurulurken ağ hatası.",
   "sidebar": {
     "newChat": "Yeni sohbet",

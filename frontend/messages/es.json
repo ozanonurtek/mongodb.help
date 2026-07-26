@@ -10,6 +10,18 @@
   "followUp": "Hacer seguimiento…",
   "thinking": "Pensando…",
   "empty": "Inicia un chat. Pega tu error, pregunta o consulta lenta.",
+  "suggestedQuestions": [
+    "¿Cómo creo un índice en MongoDB para acelerar mis consultas?",
+    "¿Cuál es la diferencia entre find() y aggregate()?",
+    "¿Cómo modelo una relación de muchos a muchos en MongoDB?",
+    "¿Por qué mi consulta de MongoDB es lenta y cómo la depuro?",
+    "¿Cómo hago una búsqueda sin distinguir mayúsculas en MongoDB?",
+    "¿Qué es un replica set y cuándo debo usarlo?",
+    "¿Cómo actualizo campos anidados en un documento de MongoDB?",
+    "¿Cómo funcionan las transacciones en MongoDB?",
+    "¿Cómo hago copia de seguridad y restauro una base de datos MongoDB?",
+    "¿Cuál es la diferencia entre MongoDB y una base de datos relacional?"
+  ],
   "networkError": "Error de red al contactar la API.",
   "sidebar": {
     "newChat": "Nuevo chat",

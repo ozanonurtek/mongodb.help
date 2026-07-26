@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChatBubble } from "./chat-bubble";
 
@@ -21,6 +22,8 @@ export function ChatThread({
   missingLabel,
   submitLabel,
   thanksLabel,
+  suggestedQuestions,
+  onSuggestionClick,
 }: {
   messages: Msg[];
   loading: boolean;
@@ -33,17 +36,47 @@ export function ChatThread({
   missingLabel?: string;
   submitLabel?: string;
   thanksLabel?: string;
+  suggestedQuestions?: string[];
+  onSuggestionClick?: (question: string) => void;
 }) {
   const hasMessages = messages.length > 0 || loading;
   const last = messages.length > 0 ? messages[messages.length - 1] : null;
   const streaming = last?.role === "assistant" && !!last.content;
 
+  // Pick 3 random suggestions once per mount (or when the pool changes —
+  // e.g. on language switch). Reshuffling on every render would make the
+  // chips jump as the user interacts.
+  const picks = useMemo(() => {
+    const pool = suggestedQuestions ?? [];
+    if (pool.length <= 3) return pool;
+    const shuffled = [...pool];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled.slice(0, 3);
+  }, [suggestedQuestions]);
+
   return (
     <ScrollArea className="min-h-0 flex-1" ref={scrollRef}>
       <div className="mx-auto flex w-full min-w-0 flex-col gap-4 p-4">
         {!hasMessages && (
-          <div className="mx-auto my-auto max-w-prose px-2 text-center text-muted-foreground">
-            {emptyLabel}
+          <div className="mx-auto my-auto flex max-w-prose flex-col items-center gap-4 px-2 text-center">
+            <p className="text-muted-foreground">{emptyLabel}</p>
+            {picks.length > 0 && onSuggestionClick && (
+              <div className="flex w-full flex-col gap-2">
+                {picks.map((q) => (
+                  <button
+                    key={q}
+                    type="button"
+                    onClick={() => onSuggestionClick(q)}
+                    className="rounded-lg border border-border bg-card px-4 py-3 text-left text-sm text-foreground shadow-sm transition-colors hover:border-primary/40 hover:bg-accent"
+                  >
+                    {q}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
