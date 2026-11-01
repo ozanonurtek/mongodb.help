@@ -22,7 +22,7 @@ outbound connection.
 | `frontend`       | `ghcr.io/ozanonurtek/mongodb.help-frontend`  | 3333          | `mongodb.help`, `www.mongodb.help` |
 | `leads-dashboard`| `ghcr.io/ozanonurtek/mongodb.help-leads-dashboard` | 3434    | `leads.mongodb.help`   |
 | `backend`        | `ghcr.io/ozanonurtek/mongodb.help-backend`   | 8888          | — (only via frontend)  |
-| `mongo`          | `mongo:8.3.2-noble`                          | 27017         | —                      |
+| `mongo`          | `mongo:8.3.13-noble`                          | 27017         | —                      |
 
 Compose project name is pinned to `mongodbhelp`, so the network is
 `mongodbhelp_default` and the volume is `mongodbhelp_mongo-data` regardless of

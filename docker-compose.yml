@@ -95,7 +95,7 @@ services:
           path: ./leads-dashboard/package.json
 
   mongo:
-    image: mongo:8.3.2-noble
+    image: mongo:8.3.13-noble
     environment:
       MONGO_INITDB_ROOT_USERNAME: "${MONGO_INITDB_ROOT_USERNAME:-root}"
       MONGO_INITDB_ROOT_PASSWORD: "${MONGO_INITDB_ROOT_PASSWORD:-rootpass}"

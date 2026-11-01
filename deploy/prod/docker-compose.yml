@@ -29,7 +29,7 @@ name: mongodbhelp
 
 services:
   mongo:
-    image: mongo:${MONGO_VERSION:-8.3.2-noble}
+    image: mongo:${MONGO_VERSION:-8.3.13-noble}
     restart: unless-stopped
     volumes:
       - mongo-data:/data/db
