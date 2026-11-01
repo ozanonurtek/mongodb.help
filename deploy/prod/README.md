@@ -110,8 +110,27 @@ set `TUNNEL_TOKEN` in `.env` to run a connector inside this project.
 
 ## 4. Deploy / update
 
-CI (`Deploy` workflow) copies this compose file to
-`/opt/mongodbhelp/deploy/prod` and runs `docker compose pull && up -d --wait`.
+Deploys run **on the host itself** through a self-hosted GitHub Actions runner
+(labels `self-hosted`, `mongodbhelp`) — no SSH keys or `SERVER_*` secrets. The
+workflow stages this compose file into `/opt/mongodbhelp/deploy/prod` and runs
+`docker compose pull && up -d --wait`.
+
+Register the runner once (as the deploy user):
+
+```bash
+mkdir -p /opt/actions-runner-mongodbhelp && cd /opt/actions-runner-mongodbhelp
+curl -fsSL -o runner.tar.gz \
+  https://github.com/actions/runner/releases/download/v2.338.2/actions-runner-linux-arm64-2.338.2.tar.gz
+tar xzf runner.tar.gz
+./config.sh --url https://github.com/ozanonurtek/mongodb.help \
+  --token <registration-token> --labels self-hosted,mongodbhelp \
+  --name oracle-mongodbhelp --unattended --replace
+sudo ./svc.sh install "$USER" && sudo ./svc.sh start
+```
+
+The deploy user must be able to write `/opt/mongodbhelp/deploy/prod` and use
+the Docker socket (member of the `docker` group).
+
 Manual equivalent:
 
 ```bash
