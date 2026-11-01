@@ -3,11 +3,16 @@ name: Deploy
 # Deploy ALREADY-BUILT images (from the Build workflow) to the single
 # production host, using plain `docker compose` (no Swarm).
 #
+# The job runs on the self-hosted runner that lives on the production host
+# (labels: self-hosted, mongodbhelp), so there is no SSH/SCP and no SERVER_*
+# secrets: the checkout, file staging and `docker compose up` all happen
+# locally on the target.
+#
 # Inputs:
 #   image_tag - image tag to pull (default: latest). For a deterministic
 #               deploy, pass the :<commit-sha> tag produced by the Build run.
 #
-# On the server the project lives in /opt/mongodbhelp/deploy/prod and the
+# On the host the project lives in /opt/mongodbhelp/deploy/prod and the
 # environment file (.env) is created manually once (see deploy/prod/README.md).
 
 on:
@@ -26,67 +31,61 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on:
+      - self-hosted
+      - mongodbhelp
     steps:
       - uses: actions/checkout@v4
 
-      - name: Copy compose file to server
-        uses: appleboy/scp-action@v1
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "deploy/prod/docker-compose.yml"
-          target: /opt/mongodbhelp
+      # Mirror the compose file into the canonical tree. The host's .env is
+      # created once by hand and is intentionally NOT overwritten.
+      - name: Stage compose file
+        run: |
+          set -euo pipefail
+          install -Dm644 deploy/prod/docker-compose.yml /opt/mongodbhelp/deploy/prod/docker-compose.yml
 
-      - name: Deploy to server
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          script: |
-            set -eo pipefail
+      - name: Deploy
+        run: |
+          set -eo pipefail
 
-            cd /opt/mongodbhelp/deploy/prod
+          IMAGE_TAG="${{ inputs.image_tag }}"
+          : "${IMAGE_TAG:=latest}"
 
-            # Load environment (created manually on the server once).
-            set -a && source .env && set +a
+          cd /opt/mongodbhelp/deploy/prod
 
-            export IMAGE_TAG="${IMAGE_TAG:-latest}"
-            : "${IMAGE_TAG:=latest}"
+          # Load environment (created manually on the server once).
+          set -a && source .env && set +a
+          export IMAGE_TAG
 
-            # Authenticate to GHCR (private packages). Fail fast and loud, a
-            # silent login failure leaves compose pulling blindly.
-            if ! echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ozanonurtek --password-stdin 2>&1; then
-              echo "ERROR: GHCR login failed. Check the GHCR_PAT secret exists and the token is valid."
+          # GHCR login is best-effort: the packages are public today, but this
+          # keeps private tags working without failing closed on a bad PAT.
+          if ! echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ozanonurtek --password-stdin >/dev/null 2>&1; then
+            echo "WARNING: GHCR login failed; continuing (packages may be public)."
+          fi
+
+          # Sanity-check that this exact image tag is pullable. Retry briefly
+          # to absorb GHCR propagation lag when chained right after a Build.
+          for svc in backend frontend leads-dashboard; do
+            ok=0
+            for i in 1 2 3 4 5 6; do
+              if docker manifest inspect "ghcr.io/ozanonurtek/mongodb.help-$svc:$IMAGE_TAG" >/dev/null 2>&1; then
+                ok=1; break
+              fi
+              echo "GHCR not ready for $svc (attempt $i/6), retrying in 15s..."
+              sleep 15
+            done
+            if [ "$ok" != 1 ]; then
+              echo "ERROR: Cannot pull ghcr.io/ozanonurtek/mongodb.help-$svc:$IMAGE_TAG"
+              echo "       Verify (a) the Build workflow pushed this commit SHA, and"
+              echo "       (b) the tag really exists."
               exit 1
             fi
+          done
 
-            # Sanity-check that this exact image tag is pullable with these
-            # creds. Retry briefly to absorb GHCR propagation lag when chained
-            # right after a Build.
-            for svc in backend frontend leads-dashboard; do
-              ok=0
-              for i in 1 2 3 4 5 6; do
-                if docker manifest inspect "ghcr.io/ozanonurtek/mongodb.help-$svc:$IMAGE_TAG" >/dev/null 2>&1; then
-                  ok=1; break
-                fi
-                echo "GHCR not ready for $svc (attempt $i/6), retrying in 15s..."
-                sleep 15
-              done
-              if [ "$ok" != 1 ]; then
-                echo "ERROR: Cannot pull ghcr.io/ozanonurtek/mongodb.help-$svc:$IMAGE_TAG"
-                echo "       Verify (a) the Build workflow pushed this commit SHA, and"
-                echo "       (b) GHCR_PAT has read:packages scope and access to the package."
-                exit 1
-              fi
-            done
+          # Pull + rolling recreate. --wait blocks until healthchecks pass so a
+          # broken deploy fails the workflow instead of silently serving 502.
+          docker compose pull
+          docker compose up -d --wait --wait-timeout 300 --remove-orphans
 
-            # Pull + rolling recreate. --wait blocks until healthchecks pass so
-            # a broken deploy fails the workflow instead of silently serving 502.
-            docker compose pull
-            docker compose up -d --wait --wait-timeout 300 --remove-orphans
-
-            # Clean up old images.
-            docker image prune -af --filter "until=24h"
+          # Clean up old images.
+          docker image prune -af --filter "until=24h"
