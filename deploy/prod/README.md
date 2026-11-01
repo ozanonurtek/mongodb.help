@@ -31,9 +31,13 @@ the checkout directory.
 ## 1. Prerequisites
 
 - Docker Engine 24+ with the Compose v2 plugin.
-- On an **arm64** host, the published images are currently `linux/amd64` only,
-  so they need qemu emulation (the compose file defaults to
-  `APP_PLATFORM=linux/amd64`):
+- The Build workflow publishes **multi-arch** manifests (`linux/amd64` +
+  `linux/arm64`) from native runners, so on an arm64 host no emulation is
+  needed: set `APP_PLATFORM=linux/arm64` in `.env`.
+
+  The compose file defaults to `linux/amd64` only as a fallback for hosts still
+  pinned to an older amd64-only tag. If you need that fallback on arm64, install
+  qemu once:
 
 ```bash
 # One-off registration
@@ -50,8 +54,9 @@ EOF
 sudo systemctl restart systemd-binfmt
 ```
 
-Once the Build workflow has pushed multi-arch images, set
-`APP_PLATFORM=linux/arm64` in `.env` (or remove the key) to run natively.
+After registering qemu, keep `APP_PLATFORM=linux/amd64`. When you switch to a
+multi-arch tag, set `APP_PLATFORM=linux/arm64` (or remove the key) and the qemu
+registration can be dropped.
 
 ## 2. First-time setup
 
