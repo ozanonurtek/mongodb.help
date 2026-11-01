@@ -34,7 +34,7 @@ Knowledge Service**.
 - **Multilingual out of the box** -- English, Turkish, French, Spanish, Arabic,
   German, Russian (RTL aware).
 - **Free for everyone**, with a generous daily quota for signed-up users.
-- **Self-hostable** -- Docker Compose for dev, Docker Swarm for prod.
+- **Self-hostable** -- Docker Compose for dev and prod (public traffic arrives through a Cloudflare Tunnel).
 
 It is also a working example of a **modern multi-service monorepo**: a FastAPI
 backend, two Next.js apps, OAuth, a credit/wallet system designed to be
@@ -85,7 +85,7 @@ MongoDB competitor -- and it's open source so the community can shape it.
 | `frontend`        | Next.js 16 · React 19 · next-intl       | `:3333`      | [`frontend/`](frontend) |
 | `leads-dashboard` | Next.js · single-password admin auth    | `:3434`      | [`leads-dashboard/`](leads-dashboard) |
 | `mongo`           | MongoDB 8.3 (self-hosted or Atlas)      | `:27018`     | `docker-compose.yml`  |
-| `nginx`           | Host-based routing proxy (prod only)    | `:80/:443`   | [`deploy/swarm/nginx/`](deploy/swarm/nginx) |
+| `cloudflared`     | Cloudflare Tunnel connector (prod only) | —            | host-level (shared)   |
 
 ## Quick start
 
@@ -173,22 +173,26 @@ cd leads-dashboard && npm run lint
 
 ## Deploy
 
-Production uses Docker Swarm with images pushed to GHCR by GitHub Actions.
+Production runs a single-host `docker compose` project; images are built by
+GitHub Actions and pushed to GHCR (multi-arch: amd64 + arm64). Public traffic
+arrives through a shared Cloudflare Tunnel connector — no port is published on
+the host.
 
 ```bash
-# On the server (once): init swarm, create mongo secret, drop TLS certs
-# at /opt/keys/{cert,privkey}.pem, then:
-cd deploy/swarm
-cp .env.example .env   # and fill in real values
-source .env
-IMAGE_TAG=latest docker stack deploy -c docker-compose.swarm.yml mongodbhelp
+# On the server (once)
+sudo mkdir -p /opt/mongodbhelp/deploy/prod
+cd /opt/mongodbhelp/deploy/prod
+sudo cp .env.example .env   # then fill in real values
+sudo docker compose pull
+sudo docker compose up -d --wait
 ```
 
 Build via **Repo → Actions → Build → Run workflow** (pushes `:latest` + `:<sha>`
-to GHCR), then **Repo → Actions → Deploy → Run workflow**.
+to GHCR), then **Repo → Actions → Deploy → Run workflow** (pulls the tag and
+recreates the stack on the server).
 
-Full guides: [`deploy/swarm/README.md`](deploy/swarm/README.md) ·
-[`deploy/swarm/DEPLOY.md`](deploy/swarm/DEPLOY.md).
+Full guide: [`deploy/prod/README.md`](deploy/prod/README.md). The old Swarm
+setup is archived in [`deploy/swarm/`](deploy/swarm) for reference.
 
 ## Contributing
 
@@ -209,7 +213,8 @@ Good first issues are labeled [`good first issue`](https://github.com/ozanonurte
 
 ## 📚 Documentation
 
-- [`deploy/swarm/README.md`](deploy/swarm/README.md) -- Production deploy guide.
+- [`deploy/prod/README.md`](deploy/prod/README.md) -- Production deploy guide (single-host Compose + Cloudflare Tunnel).
+- [`deploy/swarm/README.md`](deploy/swarm/README.md) -- Legacy Swarm setup (archived).
 
 ## Security
 
