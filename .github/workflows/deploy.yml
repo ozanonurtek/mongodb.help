@@ -48,14 +48,18 @@ jobs:
         run: |
           set -eo pipefail
 
-          IMAGE_TAG="${{ inputs.image_tag }}"
-          : "${IMAGE_TAG:=latest}"
+          # Capture the requested tag BEFORE sourcing .env: the file also
+          # defines IMAGE_TAG, and `source` would otherwise clobber the input.
+          REQUESTED_TAG="${{ inputs.image_tag }}"
 
           cd /opt/mongodbhelp/deploy/prod
 
           # Load environment (created manually on the server once).
           set -a && source .env && set +a
+
+          IMAGE_TAG="${REQUESTED_TAG:-${IMAGE_TAG:-latest}}"
           export IMAGE_TAG
+          echo "Deploying image tag: $IMAGE_TAG"
 
           # GHCR login is best-effort: the packages are public today, but this
           # keeps private tags working without failing closed on a bad PAT.
