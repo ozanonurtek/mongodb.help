@@ -1,3 +1,7 @@
+> **Legacy (archived).** Production no longer runs Swarm. Use
+> [`../prod/README.md`](../prod/README.md) — single-host Compose behind a
+> Cloudflare Tunnel. The files here are kept for reference/history only.
+
 # mongodb.help, Swarm Deploy
 
 # Update repo on server (preferred)

@@ -1,10 +1,15 @@
 name: Build
 
-# Build all app service images ONCE and push to GHCR with two tags:
+# Build all app service images ONCE and publish a multi-arch manifest to GHCR.
+#
+# Each architecture is built on a NATIVE GitHub-hosted runner — no QEMU:
+#   linux/amd64 -> ubuntu-latest
+#   linux/arm64 -> ubuntu-24.04-arm (free for public repositories)
+#
+# Per-arch builds push temporary tags (:sha-amd64 / :sha-arm64); the merge job
+# stitches them into the final manifest:
 #   - :<commit-sha>  (immutable, use this for deterministic deploys)
 #   - :latest        (convenience shortcut for "deploy the newest build")
-# nginx is NOT built, the stock `nginx:1.27-alpine` image is used and the
-# config is mounted from deploy/swarm/nginx/nginx.conf at runtime.
 #
 # Deploy is a SEPARATE workflow so you can build, then deploy whenever.
 
@@ -18,11 +23,12 @@ on:
 
 env:
   REGISTRY: ghcr.io
+  OWNER: ozanonurtek
   IMAGE_TAG: ${{ github.sha }}
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.arch.runner }}
     permissions:
       contents: read
       packages: write
@@ -34,12 +40,17 @@ jobs:
           # apps need the NEXT_PUBLIC_ prefix so Next.js inlines the value
           # into the client bundle at build time (runtime env vars are NOT
           # visible client-side); the backend just needs the plain name.
-          - { name: backend,          context: ./backend,         sha_arg: GIT_COMMIT_SHA }
-          - { name: frontend,         context: ./frontend,        sha_arg: NEXT_PUBLIC_GIT_COMMIT_SHA }
-          - { name: leads-dashboard,  context: ./leads-dashboard, sha_arg: NEXT_PUBLIC_GIT_COMMIT_SHA }
+          - { name: backend,         context: ./backend,         sha_arg: GIT_COMMIT_SHA }
+          - { name: frontend,        context: ./frontend,        sha_arg: NEXT_PUBLIC_GIT_COMMIT_SHA }
+          - { name: leads-dashboard, context: ./leads-dashboard, sha_arg: NEXT_PUBLIC_GIT_COMMIT_SHA }
+        arch:
+          - { arch: amd64, platform: linux/amd64, runner: ubuntu-latest }
+          - { arch: arm64, platform: linux/arm64, runner: ubuntu-24.04-arm }
 
     steps:
       - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -48,24 +59,61 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push ${{ matrix.service.name }}
+      - name: Build and push ${{ matrix.service.name }} (${{ matrix.arch.arch }})
         uses: docker/build-push-action@v6
         with:
           context: ${{ matrix.service.context }}
           file: ${{ matrix.service.context }}/Dockerfile
           push: true
-          tags: |
-            ${{ env.REGISTRY }}/ozanonurtek/mongodb.help-${{ matrix.service.name }}:${{ env.IMAGE_TAG }}
-            ${{ env.REGISTRY }}/ozanonurtek/mongodb.help-${{ matrix.service.name }}:latest
+          platforms: ${{ matrix.arch.platform }}
+          tags: ${{ env.REGISTRY }}/${{ env.OWNER }}/mongodb.help-${{ matrix.service.name }}:${{ env.IMAGE_TAG }}-${{ matrix.arch.arch }}
           # Bake the commit SHA into the image so each deployed build can link
           # back to the exact source it was built from (sidebar footer + the
           # backend /api/health).
           build-args: |
             ${{ matrix.service.sha_arg }}=${{ github.sha }}
+          cache-from: type=gha,scope=${{ matrix.service.name }}-${{ matrix.arch.arch }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service.name }}-${{ matrix.arch.arch }}
+
+  merge:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    strategy:
+      matrix:
+        service:
+          - { name: backend }
+          - { name: frontend }
+          - { name: leads-dashboard }
+
+    steps:
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Merge amd64 + arm64 manifests for ${{ matrix.service.name }}
+        run: |
+          IMAGE="${REGISTRY}/${OWNER}/mongodb.help-${SERVICE}"
+          docker buildx imagetools create \
+            --tag "${IMAGE}:latest" \
+            --tag "${IMAGE}:${IMAGE_TAG}" \
+            "${IMAGE}:${IMAGE_TAG}-amd64" \
+            "${IMAGE}:${IMAGE_TAG}-arm64"
+          docker buildx imagetools inspect "${IMAGE}:${IMAGE_TAG}"
+        env:
+          SERVICE: ${{ matrix.service.name }}
 
   # Optional one-shot: build then immediately deploy.
   deploy:
-    needs: build
+    needs: merge
     if: ${{ inputs.also_deploy != '' }}
     uses: ./.github/workflows/deploy.yml
     with:

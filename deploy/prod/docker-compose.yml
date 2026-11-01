@@ -1,0 +1,124 @@
+# mongodb.help — single-host production Compose
+#
+# Replaces the Docker Swarm stack (see ../swarm/ for the legacy files).
+# Runs on one host; public traffic arrives through a Cloudflare Tunnel
+# connector, so no port is published to the internet.
+#
+# Host layout:
+#   /opt/mongodbhelp/deploy/prod/docker-compose.yml   (this file)
+#   /opt/mongodbhelp/deploy/prod/.env                 (gitignored, created on the host)
+#
+# Usage:
+#   cd /opt/mongodbhelp/deploy/prod
+#   sudo docker compose pull
+#   sudo docker compose up -d --wait
+#
+# Cloudflare routes (tunnel connector must be attached to the
+# `mongodbhelp_default` network):
+#   mongodb.help        -> http://frontend:3333
+#   www.mongodb.help    -> http://frontend:3333
+#   leads.mongodb.help  -> http://leads-dashboard:3434
+#
+# The images are published per-architecture. Until the Build workflow has
+# pushed multi-arch manifests, the images are linux/amd64 only and must run
+# through qemu on an arm64 host (APP_PLATFORM=linux/amd64, the default).
+# Once multi-arch builds are available, set APP_PLATFORM=linux/arm64 on an
+# arm64 host (or drop the platform key entirely).
+
+name: mongodbhelp
+
+services:
+  mongo:
+    image: mongo:${MONGO_VERSION:-8.3.13-noble}
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?MONGO_ROOT_PASSWORD must be set}
+      MONGO_INITDB_DATABASE: mongodbhelp
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 }).ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  backend:
+    image: ghcr.io/ozanonurtek/mongodb.help-backend:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    platform: ${APP_PLATFORM:-linux/amd64}
+    environment:
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      DAILY_FREE_GRANT: ${DAILY_FREE_GRANT:-5}
+      ANON_DAILY_CHATS: ${ANON_DAILY_CHATS:-1}
+      ANON_MESSAGES_PER_CHAT: ${ANON_MESSAGES_PER_CHAT:-5}
+      SIGNEDUP_DAILY_CHATS: ${SIGNEDUP_DAILY_CHATS:-10}
+      SIGNEDUP_MESSAGES_PER_CHAT: ${SIGNEDUP_MESSAGES_PER_CHAT:-50}
+      MONGODB_URI: ${MONGODB_URI}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      ADMIN_SECRET: ${ADMIN_SECRET}
+      # MongoDB Knowledge Service (optional overrides; grounded answers).
+      KS_BASE_URL: ${KS_BASE_URL:-https://knowledge.mongodb.com/api/v1}
+      KS_ORIGIN: ${KS_ORIGIN:-https://www.mongodb.com}
+      KS_REQUEST_ORIGIN: ${KS_REQUEST_ORIGIN:-https://www.mongodb.com/docs/}
+      GATEWAY_HMAC_SECRET: ${GATEWAY_HMAC_SECRET:-dev-insecure-gateway-secret-change-me}
+    depends_on:
+      mongo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8888/api/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  frontend:
+    image: ghcr.io/ozanonurtek/mongodb.help-frontend:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    platform: ${APP_PLATFORM:-linux/amd64}
+    environment:
+      BACKEND_URL: http://backend:8888
+      AUTH_TRUST_HOST: "1"
+      # Canonical external URL: forces the correct OAuth redirect_uri.
+      AUTH_URL: ${AUTH_URL}
+      AUTH_SECRET: ${AUTH_SECRET}
+      AUTH_GITHUB_ID: ${AUTH_GITHUB_ID:-}
+      AUTH_GITHUB_SECRET: ${AUTH_GITHUB_SECRET:-}
+      AUTH_GOOGLE_ID: ${AUTH_GOOGLE_ID:-}
+      AUTH_GOOGLE_SECRET: ${AUTH_GOOGLE_SECRET:-}
+      MONGODB_URI: ${MONGODB_URI}
+      # Hours during which a deleted user cannot re-create an account.
+      DELETE_COOL_OFF_HOURS: ${DELETE_COOL_OFF_HOURS:-24}
+      GATEWAY_HMAC_SECRET: ${GATEWAY_HMAC_SECRET:-dev-insecure-gateway-secret-change-me}
+    depends_on:
+      backend:
+        condition: service_started
+
+  # Admin UI. Reached only through the tunnel (leads.mongodb.help); the
+  # single-password auth lives inside the app.
+  leads-dashboard:
+    image: ghcr.io/ozanonurtek/mongodb.help-leads-dashboard:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    platform: ${APP_PLATFORM:-linux/amd64}
+    environment:
+      BACKEND_URL: http://backend:8888
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      ADMIN_SECRET: ${ADMIN_SECRET}
+    depends_on:
+      backend:
+        condition: service_started
+
+  # Optional: run the tunnel connector in this project instead of sharing the
+  # one from /opt/checkmate. Uncomment, set TUNNEL_TOKEN in .env, and keep the
+  # routes in the Cloudflare dashboard pointed at the service names below.
+  #
+  # cloudflared:
+  #   image: cloudflare/cloudflared:latest
+  #   restart: unless-stopped
+  #   command: tunnel --no-autoupdate run --token ${TUNNEL_TOKEN}
+  #   depends_on:
+  #     - frontend
+  #     - leads-dashboard
+
+volumes:
+  mongo-data:

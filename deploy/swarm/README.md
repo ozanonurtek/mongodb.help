@@ -1,3 +1,7 @@
+> **Legacy (archived).** Production no longer runs Swarm. Use
+> [`../prod/README.md`](../prod/README.md) — single-host Compose behind a
+> Cloudflare Tunnel. The files here are kept for reference/history only.
+
 # mongodb.help, Production Deployment Guide
 
 ## 1. GitHub Secrets
@@ -89,7 +93,7 @@ curl -I http://localhost:80/   # should 301 to https://
 | Frontend         | node/alpine   | 26.5.0         |
 | Leads dashboard  | node/alpine   | 26.5.0         |
 | Nginx (stock)    | nginx/alpine  | 1.30.4         |
-| MongoDB          | mongo         | 8.3.2          |
+| MongoDB          | mongo         | 8.3.13         |
 
 ## Notes
 
