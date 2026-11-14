@@ -409,8 +409,8 @@ async def send_message(
         except HTTPException as exc:
             yield sse({"type": "error", "status": exc.status_code, "detail": exc.detail})
             return
-        except Exception as exc:  # pragma: no cover - defensive
-            yield sse({"type": "error", "status": 500, "detail": str(exc)})
+        except Exception:  # pragma: no cover - defensive
+            yield sse({"type": "error", "status": 500, "detail": "Internal server error"})
             return
 
         answer = "".join(collected).strip()
